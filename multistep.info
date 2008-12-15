@@ -1,0 +1,5 @@
+; $Id$
+name = Multistep
+description = Adds multistep functionality to CCK content types.
+dependencies = content fieldgroup
+package = "CCK"

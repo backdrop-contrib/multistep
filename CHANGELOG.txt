@@ -1,0 +1,5 @@
+$Id$
+
+Multistep 5.x-1.0, 2008-12-12
+-----------------------------------------
+Initial release of multistep module. Already supporting Drupal 5.14.
