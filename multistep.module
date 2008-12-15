@@ -44,15 +44,15 @@ function _multistep_block_menu($type) {
     $node = node_load(arg(1));
     if ($node->type == $type && variable_get('multistep_expose_' . $type, 'disabled') == 'enabled') {
       $groups = fieldgroup_groups($type);
-  	  foreach ($groups as $group) {
-  	    $step = $group['settings']['multistep'];
-  	    $content[$step . $group['weight']] = l($group['label'], 'node/' . arg(1) . '/edit/' . $step);
-  	  }
-  	  $content_type = content_types($type);
-  	  return array(
-  	    'subject' => $content_type['name'] . ' menu',
-  	    'content' => theme_item_list($content),
-  	  );
+      foreach ($groups as $group) {
+        $step = $group['settings']['multistep'];
+        $content[$step . $group['weight']] = l($group['label'], 'node/' . arg(1) . '/edit/' . $step);
+      }
+      $content_type = content_types($type);
+      return array(
+        'subject' => $content_type['name'] . ' menu',
+        'content' => theme_item_list($content),
+      );
     }
   }
   return;
@@ -105,65 +105,65 @@ function multistep_form_alter($form_id, &$form) {
   }
   elseif (substr_count($form_id, 'node_form') > 0 && arg(0) != 'admin' && variable_get('multistep_expose_' . $form['#node']->type, 'disabled') == 'enabled') {
   // This is the node-editing form.
-  	$type = $form['#node']->type;
-  	$current_step = _multistep_get_current_step($type);
+    $type = $form['#node']->type;
+    $current_step = _multistep_get_current_step($type);
 
-	  $form['#multistep'] = TRUE;
-  	$form['#redirect'] = FALSE;
+    $form['#multistep'] = TRUE;
+    $form['#redirect'] = FALSE;
   
-  	// This adds different submitting buttons (Previous, Save, Next, Done)
-  	//TODO: Store button labels in variables and allow changing the value.
-  	if ($current_step > 1) {
-  	  $form['multistep']['previous'] = array (
-  			'#type' => 'submit',
-			  '#value' => t('< Previous'),
-			  '#weight' => 11,
-		  );
-		  // This hides the node title and body for steps greater than 1.
-		  $form['title']['#type'] = 'hidden';
-  	  $form['body_filter']['body']['#type'] = 'hidden';
-  	}
-		$form['multistep']['save'] = array (
-  	  '#type' => 'submit',
-		  '#value' => t('Save'),
-		  '#weight' => 12,
-		);
-	  if ($current_step < variable_get('multistep_steps_' . $type, 0)) {
-  		$form['multistep']['next'] = array (
-			  '#type' => 'submit',
-			  '#value' => t('Next >'),
-			  '#weight' => 13,
-		  );
-	  }
-	  if ($current_step == variable_get('multistep_steps_' . $type, 0)) {
-  		$form['multistep']['done'] = array (
-			  '#type' => 'submit',
-			  '#value' => t('Done'),
-			  '#weight' => 13,
-		  );
-	  }
-  	// These are hidden in favor of the custom ones above.
-  	drupal_add_js('$(document).ready(function() {
-  	  $("input[@id=edit-preview]").hide();
-  	  $("input[@id=edit-submit]").hide();
-  	  $("input[@id=edit-delete]").hide();
-  	});', 'inline');
-  	
-  	// This makes drupal call my submit hook instead of node_form_submit.
-	  $form['#submit'] = array (
+    // This adds different submitting buttons (Previous, Save, Next, Done)
+    //TODO: Store button labels in variables and allow changing the value.
+    if ($current_step > 1) {
+      $form['multistep']['previous'] = array(
+        '#type' => 'submit',
+        '#value' => t('< Previous'),
+        '#weight' => 11,
+      );
+      // This hides the node title and body for steps greater than 1.
+      $form['title']['#type'] = 'hidden';
+      $form['body_filter']['body']['#type'] = 'hidden';
+    }
+    $form['multistep']['save'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save'),
+      '#weight' => 12,
+    );
+    if ($current_step < variable_get('multistep_steps_' . $type, 0)) {
+      $form['multistep']['next'] = array(
+        '#type' => 'submit',
+        '#value' => t('Next >'),
+        '#weight' => 13,
+      );
+    }
+    if ($current_step == variable_get('multistep_steps_' . $type, 0)) {
+      $form['multistep']['done'] = array(
+        '#type' => 'submit',
+        '#value' => t('Done'),
+        '#weight' => 13,
+      );
+    }
+    // These are hidden in favor of the custom ones above.
+    drupal_add_js('$(document).ready(function() {
+      $("input[@id=edit-preview]").hide();
+      $("input[@id=edit-submit]").hide();
+      $("input[@id=edit-delete]").hide();
+    });', 'inline');
+    
+    // This makes drupal call my submit hook instead of node_form_submit.
+    $form['#submit'] = array(
       'multistep_submit' => array(),
     );
-  	
-  	// Loop through each group and hide those that don't belong in this step.
-  	$groups = fieldgroup_groups($type);
-  	foreach ($groups as $group) {
-  	  if ($group['settings']['multistep'] > 0 && $group['settings']['multistep'] != $current_step) {
-  	    $group_name = str_replace('_', '-', $group['group_name']);
-  	    drupal_add_js('$(document).ready(function() {
-  	      $("fieldset[@class=' . $group_name . ']").hide();
-  	    });', 'inline');
-  	  }
-  	}
+    
+    // Loop through each group and hide those that don't belong in this step.
+    $groups = fieldgroup_groups($type);
+    foreach ($groups as $group) {
+      if ($group['settings']['multistep'] > 0 && $group['settings']['multistep'] != $current_step) {
+        $group_name = str_replace('_', '-', $group['group_name']);
+        drupal_add_js('$(document).ready(function() {
+          $("fieldset[@class=' . $group_name . ']").hide();
+        });', 'inline');
+      }
+    }
   }
 }
 
@@ -171,30 +171,30 @@ function multistep_form_alter($form_id, &$form) {
  * Submit the form and redirect to the next appropriate step.
  */
 function multistep_submit($form_id, &$form_values = NULL) {
-	// Now the entire form is in $form_values, let's finally submit the node.
-	$nid = node_form_submit($form_id, $form_values);
+  // Now the entire form is in $form_values, let's finally submit the node.
+  $nid = node_form_submit($form_id, $form_values);
 
   $current_step = _multistep_get_current_step($form_values['type']);
   
-	// Redirect relative to the current step.
-	if ($form_values['op'] == t('Next >') || $form_values['op'] == t('Done')) {
-		$step = $current_step + 1;
-	}
-	elseif ($form_values['op'] == t('Save')) {
-		$step = $current_step;
-	}
-	elseif ($form_values['op'] == t('< Previous')) {
+  // Redirect relative to the current step.
+  if ($form_values['op'] == t('Next >') || $form_values['op'] == t('Done')) {
+    $step = $current_step + 1;
+  }
+  elseif ($form_values['op'] == t('Save')) {
+    $step = $current_step;
+  }
+  elseif ($form_values['op'] == t('< Previous')) {
     $step = $current_step - 1;
-	}
+  }
 
-	// If there are steps left, go to the next (or previous) one.
-	if ($step <= variable_get('multistep_steps_' . $form_values['type'], 0)) {
-		drupal_goto($nid . '/edit/' . $step);
-	}
-	else {
+  // If there are steps left, go to the next (or previous) one.
+  if ($step <= variable_get('multistep_steps_' . $form_values['type'], 0)) {
+    drupal_goto($nid . '/edit/' . $step);
+  }
+  else {
     // If this was the last step, then exit the form.
-		drupal_goto($nid);
-	}
+    drupal_goto($nid);
+  }
 }
 
 /**
@@ -216,7 +216,7 @@ function _multistep_get_steps($form_type) {
  */
 function _multistep_get_current_step($form_type) {
   $current_step = 1;
-  if(arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == 'edit'
+  if (arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == 'edit'
   && is_numeric(arg(3)) && arg(3) >= 1
   && arg(3) <= variable_get('multistep_steps_' . $form_type, 0)) {
     $current_step = arg(3);
