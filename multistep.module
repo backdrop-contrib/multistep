@@ -17,6 +17,24 @@ function multistep_help($section = '') {
 }
 
 /**
+ * Implementation of hook_init().
+ * This function stores the original modules that render each field.
+ */
+function multistep_init() {
+  global $info;
+  foreach (module_list() as $module) {
+    $module_widgets = module_invoke($module, 'widget_info');
+    if ($module_widgets) {
+      foreach ($module_widgets as $name => $widget_info) {
+        // Truncate names to match the value that is stored in the database.
+        $db_name = substr($name, 0, 32);
+        $info[$db_name][] = $module;
+      }
+    }
+  }
+}
+
+/**
  * Implementation of hook_block().
  */
 function multistep_block($op = 'list', $delta = 0, $edit = array()) {
@@ -56,6 +74,37 @@ function _multistep_block_menu($type) {
     }
   }
   return;
+}
+
+/**
+ * Implementation of hook_widget_info().
+ */
+function multistep_widget_info() {
+  return _content_widget_types();
+}
+
+/**
+ * Implementation of hook_widget().
+ */
+function multistep_widget($op, &$node, $field, &$items) {
+  global $info;
+  $function = $info[$field['widget']['type']][0] . '_widget';
+  // Show all fields if we are in the admin area or if multistep is disabled for this content type.
+  if (arg(0) == 'admin' || variable_get('multistep_expose_' . $node->type, 'disabled') != 'enabled') {
+    return $function($op, $node, $field, $items);
+  }
+  // Loop through each group and only return those that belong in this step.
+  $groups = fieldgroup_groups($node->type);
+  $current_step = _multistep_get_current_step($node->type);
+  foreach ($groups as $group) {
+    if ($group['settings']['multistep'] == $current_step) {
+      foreach ($group['fields'] as $group_field) {
+        if ($group_field['field_name'] == $field['field_name']) {
+          return $function($op, $node, $field, $items);
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -142,28 +191,16 @@ function multistep_form_alter($form_id, &$form) {
         '#weight' => 13,
       );
     }
-    // These are hidden in favor of the custom ones above.
-    drupal_add_js('$(document).ready(function() {
-      $("input[@id=edit-preview]").hide();
-      $("input[@id=edit-submit]").hide();
-      $("input[@id=edit-delete]").hide();
-    });', 'inline');
+    
+    // These are removed in favor of the custom ones above
+    unset($form['delete']);
+    unset($form['preview']);
+    unset($form['submit']);
     
     // This makes drupal call my submit hook instead of node_form_submit.
     $form['#submit'] = array(
       'multistep_submit' => array(),
     );
-    
-    // Loop through each group and hide those that don't belong in this step.
-    $groups = fieldgroup_groups($type);
-    foreach ($groups as $group) {
-      if ($group['settings']['multistep'] > 0 && $group['settings']['multistep'] != $current_step) {
-        $group_name = str_replace('_', '-', $group['group_name']);
-        drupal_add_js('$(document).ready(function() {
-          $("fieldset[@class=' . $group_name . ']").hide();
-        });', 'inline');
-      }
-    }
   }
 }
 

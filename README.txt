@@ -12,9 +12,6 @@ The module also provides a block for each content type with a menu of the
 different groups within that form. This provides an easy way to jump to
 different steps throughout the form without having to go one by one.
 
-The groups are shown/hidden with jQuery, but work is being done to do it
-through PHP, or at least degrade it gracefully.
-
 For a full description visit the project page:
   http://drupal.org/project/multistep
 Bug reports, feature suggestions and latest developments:
