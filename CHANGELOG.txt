@@ -1,7 +1,33 @@
 $Id$
 
-Multistep 6.x-1.x-dev
+Multistep 7.x-1.x-dev
 ---------------------
+Initial development snapshot for Drupal 7.
+
+Multistep 6.x-1.5
+-----------------
+#844798: Node should be marked as complete when submitting the entire form at once.
+#901420 by Sansui: Add documentation on integrating modules with Multistep.
+Added an API documentation file.
+Skip field access if there is no node loaded.
+#868826 by adan: HTTP 403 error when use with autocomplete fields.
+#889924 by iamer: Add compatibility with Prepopulate module.
+#742992 by WorldFallz: Convert dashes to underscores in node type machine names.
+#870896 by WorldFallz: Fields disappearing from views.
+#844624: Attempt to make block accept a user profile as its context.
+#825392: Verify access for fields that are set to view only during node edit.
+#756734 by WorldFallz: Default value fields disappearing from field settings.
+#824406 by galaxor: Add indexes to multistep table.
+#833586 by chey: Add support for Rules.
+#839560: Make default button labels translatable.
+#839594: Disable link in menu block if node has not yet been created.
+#817180 by chey: Next unsubmitted step in block not linking on Wizard mode.
+Fixed some translation strings.
+#782534: Body needs to validate on the first step when minimum word count is enabled.
+#799158 by VladSavitsky: Calls to variable_get should have consistent defaults.
+#785656 by VladSavitsky: Theming and configuration options for navigation block.
+Split the admin settings form into multiple tabs.
+#660540 by GuyPaddock: Fields with AJAX calls should use a properly formatted name.
 #742992: Display block on the first step.
 #707384 by lelizondob: Make buttons optional.
 #684188 by neilnz: Add support for PostgreSQL.
