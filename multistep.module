@@ -161,91 +161,80 @@ function multistep_block_save($delta = '', $edit = array()) {
  * @todo Add fieldgroup integration
  */
 function multistep_block_view($type = '') {
+  // Verify that this is a node edit form
   $router_item = menu_get_item();
-  if (!is_array($router_item['load_functions'])) {
+  if ($router_item['page_callback'] != 'node_page_edit') {
     return;
   }
-  $position = array_shift(array_keys($router_item['load_functions']));
-  $node = $router_item['map'][$position];
-  //$node = menu_get_object();
-  if ($node->type == $type && is_multistep($type)) {
-    $content = '';
-    // Display block body.
-    if (variable_get('multistep_body_' . $type, '') != '') {
-      $body_text = array(
-        '#type' => 'item',
-        '#value' => variable_get('multistep_body_' . $type, ''),
-      );
-      $content .= drupal_render($body_text);
-    }
-    // Get step information
-    $current_step = multistep_get_step($type);
-    $groups = multistep_get_steps($type);
-    // Get design variables
-    $workflow_mode = variable_get('multistep_workflow_mode', 'free');
-    // Generate the menu items.
-    if (variable_get('multistep_menu_' . $type, 1)) {
-      $data = array();
-      foreach ($groups as $group) {
-        // Highlight unsubmitted steps.
-        $status = _multistep_get_status($node->nid, $group->group_name);
-        $data[$group->weight . $group->group_name] = array(
-          'id' => 'multistep-' . $type . '-' . $group->group_name,
-          // Jump to the anchor point of the group.
-          'anchor' => 'multistep-' . $group->group_name,
-          'class' => array(
-            is_null($status) || $status == '' ? '' : 'multistep-' . $status,
-            $current_step == $group->group_name ? 'active': '',
-          ),
-          'url' => isset($node->nid) && ($workflow_mode == 'free' || ($workflow_mode == 'direct' && ($status == 'submitted' || multistep_get_next($type, $last_submitted_step) == $group->group_name))) ? $_GET['q'] : NULL,
-          'step' => $group->group_name,
-          'label' => $group->label,
-          'next_unsubmitted_step' => FALSE,
-        );
-        if ($workflow_mode == 'direct') {
-          if ($status == 'unsubmitted' && multistep_get_next($type, $last_submitted_step) == $group->group_name) {
-            $data[$group->weight . $group->group_name]['next_unsubmitted_step'] = TRUE;
-          }
-          if ($status == 'submitted') {
-            $last_submitted_step = $group->group_name;
-          }
-        }
-      }
-      $content .= theme('multistep_navigation', $data);
-    }
-    // Generate the progress bar.
-    if (variable_get('multistep_progress_' . $type, 1)) {
-      $steps = count($groups);
-      $submitted = 0;
-      foreach ($groups as $group) {
-      //for ($step = 1; $step <= $steps; $step++) {
-        $status = _multistep_get_status($node->nid, $group->group_name);
-        // Count how many steps have been submitted.
-        if ($status == 'submitted') {
-          $submitted++;
-        }
-      }
-      $content .= theme('multistep_progress_bar', round($submitted / $steps * 100));
-    }
-    $node_type = node_type_load($type);
-    drupal_add_css(drupal_get_path('module', 'multistep') . '/multistep.css');
-    return array(
-      'subject' => $node_type->name . ' menu',
-      'content' => $content,
+  // Load the node object
+  $node = menu_get_object();
+  // Get out if there are no multistep groups here
+  if ($node->type != $type || !is_multistep($type)) {
+    return;
+  }
+  $content = array();
+  // Display block body.
+  if (variable_get('multistep_body_' . $type, '') != '') {
+    $content['multistep_block_body'] = array(
+      '#markup' => variable_get('multistep_body_' . $type, ''),
     );
   }
-  // Each block will contain a menu for the groups in that form and a progress bar.
-  //drupal_add_css(drupal_get_path('module', 'multistep') . '/multistep.css');
-  /*if (arg(0) == 'node' || arg(0) == 'user') {
-    $node_type = '';
-    $new = FALSE;
-    if ($node_type == $type && is_multistep($type)) {
-      $content = '';
-      
-      
-      
+  // Get step information
+  $current_step = multistep_get_step($type);
+  $groups = multistep_get_steps($type);
+  // Get design variables
+  $workflow_mode = variable_get('multistep_workflow_mode', 'free');
+  // Generate the menu items.
+  if (variable_get('multistep_menu_' . $type, 1)) {
+    $data = array();
+    $content['multistep_block_navigation'] = array(
+      '#theme' => 'multistep_navigation',
+      '#children' => array(),
+    );
+    foreach ($groups as $group) {
+      // Highlight unsubmitted steps.
+      $status = _multistep_get_status($node->nid, $group->group_name);
+      $content['multistep_block_navigation']['#children'][$group->weight . $group->group_name] = array(
+        'id' => 'multistep-' . $type . '-' . $group->group_name,
+        'class' => array(
+          is_null($status) || $status == '' ? '' : 'multistep-' . $status,
+          $current_step == $group->group_name ? 'active': '',
+        ),
+        'url' => isset($node->nid) && ($workflow_mode == 'free' || ($workflow_mode == 'direct' && ($status == 'submitted' || multistep_get_next($type, $last_submitted_step) == $group->group_name))) ? $_GET['q'] : NULL,
+        'step' => $group->group_name,
+        'label' => $group->label,
+        'next_unsubmitted_step' => FALSE,
+      );
+      if ($workflow_mode == 'direct') {
+        if ($status == 'unsubmitted' && multistep_get_next($type, $last_submitted_step) == $group->group_name) {
+          $content['multistep_block_navigation']['#children'][$group->weight . $group->group_name]['next_unsubmitted_step'] = TRUE;
+        }
+        if ($status == 'submitted') {
+          $last_submitted_step = $group->group_name;
+        }
+      }
     }
-  }*/
+  }
+  // Generate the progress bar.
+  if (variable_get('multistep_progress_' . $type, 1)) {
+    $steps = count($groups);
+    $submitted = 0;
+    foreach ($groups as $group) {
+    //for ($step = 1; $step <= $steps; $step++) {
+      $status = _multistep_get_status($node->nid, $group->group_name);
+      // Count how many steps have been submitted.
+      if ($status == 'submitted') {
+        $submitted++;
+      }
+    }
+    //$content .= theme('multistep_progress_bar', round($submitted / $steps * 100));
+  }
+  $node_type = node_type_load($type);
+  drupal_add_css(drupal_get_path('module', 'multistep') . '/multistep.css');
+  return array(
+    'subject' => $node_type->name . ' menu',
+    'content' => $content,
+  );
   return;
 }
 
@@ -798,11 +787,11 @@ function _multistep_will_complete(&$form_state, $current_step) {
 function multistep_theme() {
   return array(
     'multistep_navigation' => array(
-      'arguments' => array('data' => array()),
+      'render element' => 'links',
       'file' => 'multistep.theme.inc',
     ),
     'multistep_progress_bar' => array(
-      'arguments' => array('progress' => NULL),
+      'variables' => array('progress' => NULL),
       'file' => 'multistep.theme.inc',
     ),
   );

@@ -2,6 +2,8 @@ $Id$
 
 Multistep 7.x-1.x-dev
 ---------------------
+Return block navigation links as a renderable array.
+Removed unnecessary anchor point for multistep group.
 Changed database schema to support machine name for steps.
 Fixed the block system.
 Fixed way of getting multistep-enabled content types in the reset admin page.
