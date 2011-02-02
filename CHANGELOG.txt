@@ -2,7 +2,9 @@ $Id$
 
 Multistep 7.x-1.x-dev
 ---------------------
+Fixed way of getting multistep-enabled content types in the reset admin page.
 #1038708: Initialize empty $blocks array in hook_block_info().
+Added dependency on field_group.
 Initial development snapshot for Drupal 7.
 
 Multistep 6.x-1.5

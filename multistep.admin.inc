@@ -3,7 +3,7 @@
 
 /**
  * @file
- * 
+ * Administration settings for multistep.
  */
 
 /**
@@ -115,11 +115,10 @@ function multistep_admin_settings_design_form($form, &$form_state) {
 function multistep_admin_settings_reset_form($form, &$form_state) {
   $form = array();
   $form['#description'] = t('This form will reset all the step data for the selected content type. Use this if you just enabled multistep for a content type that already contained nodes.') . '<br /><strong>' . t('Warning! Resetting the tables for a content type that already had multistep enabled could result in the loss of the step data!') . '</strong>';
-  $node_types = node_type_get_types();
   $options = array('' => '- Select -');
-  foreach ($node_types as $node_type) {
-    if (variable_get('multistep_enabled_' . $node_type->type, 'disabled') == 'enabled') {
-      $options[$node_type->type] = $node_type->name;
+  foreach (node_type_get_types() as $type) {
+    if (is_multistep($type)) {
+      $options[$type->type] = $type->name;
     }
   }
   $form['multistep_type'] = array(
