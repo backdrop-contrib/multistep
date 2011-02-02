@@ -368,7 +368,7 @@ function multistep_field_attach_form($entity_type, $entity, &$form, &$form_state
     $form['actions']['done'] = array(
       '#type' => 'submit',
       '#value' => variable_get('multistep_button_done', t('Done')),
-      '#submit' => array('node_form_submit'),
+      '#submit' => array('node_form_submit', 'multistep_submit'),
       '#weight' => 999,
     );
   }
@@ -389,14 +389,13 @@ function multistep_node_validate($node, $form, &$form_state) {
     return;
   }
   /*if ($form['revision_information']['revision']['#value']) {
-    $complete = _multistep_is_complete($form_state);
+    $complete = multistep_is_complete($node);
     $last = $form_state['clicked_button']['#parents'][0] == 'done' ? TRUE : FALSE;
     $form_state['values']['revision'] = _multistep_revisioning($complete, $last);
   }*/
   // Verify if the status checkbox is checked, and the Publishing option is set to Publish
   /*if ($form_state['values']['status'] && array_search('status', variable_get('node_options_' . $form_state['values']['type'], array())) !== FALSE) {
-    $step = multistep_get_step($form_state['values']['type']);
-    $complete = _multistep_will_complete($form_state, $step);
+    $complete = multistep_will_complete($node);
     $form_state['values']['status'] = _multistep_publishing($complete);
   }*/
 }
@@ -410,11 +409,6 @@ function multistep_submit($form, &$form_state) {
   $current_step = $form['#multistep']['current'];
   $status = module_invoke_all('multistep_update_status', $form_state, 'submitted', $current_step);
   _multistep_update_status($node, $status, $current_step);
-  $query = array(
-    'query' => array(
-      'step' => array(),
-    ),
-  );
   $step = FALSE;
   switch ($form_state['clicked_button']['#parents'][0]) {
     case 'previous':
@@ -426,11 +420,13 @@ function multistep_submit($form, &$form_state) {
       break;
   }
   if ($step) {
-    $query['query']['step'] = $step;
+    $query = array(
+      'query' => array('step' => $step),
+    );
     $form_state['redirect'] = array('node/' . $node->nid . '/edit', $query);
   }
   else {
-    $form_state['redirect'] = array('node/' . $node->nid . '/edit');
+    $form_state['redirect'] = array('node/' . $node->nid);
   }
 }
 
@@ -747,53 +743,34 @@ function _multistep_get_status($nid, $step = 'all') {
 }
 
 /**
- * Get status of all steps in a specific node and decide whether the form is complete or no.
+ * Check to see if the node is complete.
  */
-function _multistep_is_complete(&$form_state) {
-  $steps = variable_get('multistep_steps_' . $form_state['values']['type'], 0);
-  // Verify if there's at least one step that's not complete.
-  for ($step = 1; $step <= $steps; $step++) {
-    if (_multistep_get_status($form_state['values']['nid'], $step) != 'submitted') {
-      return FALSE;
-    }
-  }
-  return TRUE;
+function multistep_is_complete($node) {
+  // Get the status of all the steps in the node
+  $status = _multistep_get_status($node->nid);
+  // Look for a step that is not yet submitted
+  return !in_array('unsubmitted', $status);
 }
 
 /**
- * Decide whether the current submission process will bring the form to completion status, or if it's complete already.
+ * Decide whether the current submission process will bring the form to
+ * completion status, or if it's already complete.
  */
-function _multistep_will_complete(&$form_state, $current_step) {
-  // Return FALSE if some other module is setting the step as unsubmitted
-  $override = module_invoke_all('multistep_update_status', $form_state, 'unsubmitted', $current_step);
-  foreach ($override as $status) {
-    if ($status != 'submitted') {
-      return FALSE;
+function multistep_will_complete($node) {
+  if (multistep_is_complete($node)) {
+    return TRUE;
+  }
+  // Get the current step
+  $step = multistep_get_step($node->type);
+  // Get the status of all the steps in the node
+  $status = _multistep_get_status($node->nid);
+  // Remove non-unsubmitted steps from the array
+  foreach ($status as $key => $unsubmitted) {
+    if ($unsubmitted != 'unsubmitted') {
+      unset($status[$key]);
     }
   }
-  // Return TRUE if the entire form is being submitted at once or if it's already complete
-  if ($current_step == 0 || _multistep_is_complete($form_state)) {
-    return TRUE;
-  }
-  $steps = variable_get('multistep_steps_' . $form_state['values']['type'], 0);
-  $unsubmitted = array();
-  // Verify which steps are not complete.
-  for ($step = 1; $step <= $steps; $step++) {
-    if (_multistep_get_status($form_state['values']['nid'], $step) != 'submitted') {
-      $unsubmitted[$step] = $step;
-    }
-  }
-  if (count($unsubmitted) == 0) {
-    // If it's complete, submitting the current step will keep it complete.
-    return TRUE;
-  }
-  elseif (isset($unsubmitted[$current_step]) && count($unsubmitted) == 1 && $unsubmitted[$current_step] == $current_step) {
-    // If the current step is the only one left, submitting it will complete the form.
-    return TRUE;
-  }
-  else {
-    return FALSE;
-  }
+  return (count($status) == 1 && array_key_exists($step, $status));
 }
 
 /**

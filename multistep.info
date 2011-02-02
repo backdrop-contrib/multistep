@@ -9,6 +9,6 @@ files[] = multistep.module
 files[] = multistep.install
 files[] = multistep.admin.inc
 files[] = multistep.theme.inc
-;files[] = multistep.rules.inc
+files[] = multistep.rules.inc
 ;files[] = multistep.views.inc
 configure = admin/config/content/multistep
