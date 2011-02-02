@@ -529,10 +529,10 @@ function is_multistep($type) {
 /**
  * Determine the current step from the arguments, if no argument is supplied
  * or if this is the node creation form (as opposed to node editing form)
- * then set the current step as 1.
+ * then set the current step to the first one.
  * Step 'all' will render the entire form and it is reserved with users with
  * "toggle multistep" permissions.
- * @todo Get the step from the REQUEST array.
+ * @todo Add support for toggling the multistep/one-page form.
  * @todo If no step is specified, return the next unsubmitted step (if that option is enabled).
  */
 function multistep_get_step($type) {
@@ -543,7 +543,7 @@ function multistep_get_step($type) {
   if (is_object($type)) {
     $type = $type->type;
   }
-  // @see http://drupal.org/node/566682 - Added support for hierarchical_select.
+  // @see http://drupal.org/node/566682 - Added support for hierarchical_select
   if (arg(0) == 'hierarchical_select_json') {
     $hsid = $_POST['hsid'];
     foreach ($_POST['taxonomy'] as $vid => $config) {
@@ -560,12 +560,21 @@ function multistep_get_step($type) {
     // Decide step based on type/field combination
     return multistep_get_field_step($field, $type);
   }
-  // This condition occurs if using AJAX to add another value for a multi-value field.
+  // This condition occurs if using AJAX to add another value for a multi-value field
   if (arg(1) == 'js_add_more' // Add more button
   || arg(1) == 'js' // Upload through the upload module
-  || arg(1) == 'ahah') { // Upload through the filefield module
-    $type = str_replace('-', '_', arg(2));
-    $field = arg(3);
+  || arg(1) == 'ajax') { // Upload through the file module
+    $field = arg(2);
+    // For system/ajax callbacks, there is no field name passed in the request
+    if (!$field) {
+      $trigger = $_REQUEST['_triggering_element_name'];
+      foreach ($_REQUEST as $possible_field => $value) {
+        // This should work for most cases where good Drupal naming conventions are used
+        if (substr_count($possible_field, 'field_') && substr_count($trigger, $possible_field)) {
+          $field = $possible_field;
+        }
+      }
+    }
     // Decide step based on type/field combination
     return multistep_get_field_step($field, $type);
   }
@@ -627,9 +636,10 @@ function multistep_get_last($type) {
  */
 function multistep_get_field_step($field_name, $type) {
   $groups = multistep_get_steps($type);
+  // Recursively find field step
   foreach ($groups as $group) {
-    if (multistep_is_field_step($field_name, $group->group_name, $type)) {
-      //return $group->group_name;
+    if ($step = multistep_get_field_step_recursive($field_name, $group->group_name, $type)) {
+      return $step;
     }
   }
   // Field does not belong to any step
@@ -639,15 +649,17 @@ function multistep_get_field_step($field_name, $type) {
 /**
  * Recursively finds whether a field belongs to a step.
  */
-function multistep_is_field_step($field, $group, $type) {
+function multistep_get_field_step_recursive($field, $group, $type) {
   $group = field_group_menu_load($group, 'node', $type, NULL, NULL);
   if (is_array($group->children)) {
     if (in_array($field, $group->children)) {
-      return TRUE;
+      return $group->group_name;
     }
-    foreach ($group->children as $child) {
-      if (strpos($child, 'group_')) {
-        return multistep_is_field_step($field, $child, $type);
+    else {
+      foreach ($group->children as $child) {
+        if (strpos($child, 'group_')) {
+          return multistep_get_field_step_recursive($field, $child, $type);
+        }
       }
     }
   }
