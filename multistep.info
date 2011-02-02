@@ -3,6 +3,7 @@ name = Multistep
 description = Adds multistep functionality to content types.
 package = Fields
 dependencies[] = field
+dependencies[] = field_group
 core = 7.x
 files[] = multistep.module
 files[] = multistep.install

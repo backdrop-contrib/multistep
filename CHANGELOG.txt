@@ -2,6 +2,7 @@ $Id$
 
 Multistep 7.x-1.x-dev
 ---------------------
+#1038708: Initialize empty $blocks array in hook_block_info().
 Initial development snapshot for Drupal 7.
 
 Multistep 6.x-1.5
