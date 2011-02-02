@@ -25,9 +25,9 @@ function theme_multistep_navigation($variables = array()) {
  * Block Theme function that displays the default output of a progress bar.
  * Use this theme function to override the output / display of this block.
  */
-function theme_multistep_progress_bar($progress) {
+function theme_multistep_progress_bar($variables = array()) {
   $output = '<div class="multistep-progress-bar-wrapper">';
-  $output .= '<div class="multistep-progress-bar multistep-progress-bar-' . $progress . '" style="width: ' . $progress . '%">' . $progress . '%</div>';
+  $output .= '<div class="multistep-progress-bar multistep-progress-bar-' . $variables['progress'] . '" style="width: ' . $variables['progress'] . '%">' . $variables['progress'] . '%</div>';
   $output .= '</div>';
   return $output;
 }

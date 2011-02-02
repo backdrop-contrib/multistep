@@ -2,6 +2,8 @@ $Id$
 
 Multistep 7.x-1.x-dev
 ---------------------
+Added static caching for multistep_get_steps().
+Return block progress bar as a renderable array.
 Return block navigation links as a renderable array.
 Removed unnecessary anchor point for multistep group.
 Changed database schema to support machine name for steps.

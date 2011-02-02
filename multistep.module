@@ -6,8 +6,6 @@
  * The Multistep module adds multiple-step functionality to content types.
  * 
  * @todo Change the step argument so that it's passed in a different REQUEST variable.
- * @todo Hook into field_group to provide a new type of group: Form step.
- * @todo Form steps should not be numeric, but the name of the field_group.
  * @todo Calculate (and store) the number of Form steps per form.
  */
 
@@ -157,8 +155,6 @@ function multistep_block_save($delta = '', $edit = array()) {
 
 /**
  * Implements hook_block_view().
- * @todo Return a renderable array instead of HTML.
- * @todo Add fieldgroup integration
  */
 function multistep_block_view($type = '') {
   // Verify that this is a node edit form
@@ -217,17 +213,20 @@ function multistep_block_view($type = '') {
   }
   // Generate the progress bar.
   if (variable_get('multistep_progress_' . $type, 1)) {
-    $steps = count($groups);
-    $submitted = 0;
-    foreach ($groups as $group) {
-    //for ($step = 1; $step <= $steps; $step++) {
-      $status = _multistep_get_status($node->nid, $group->group_name);
-      // Count how many steps have been submitted.
-      if ($status == 'submitted') {
-        $submitted++;
+    if ($steps = count($groups)) {
+      $submitted = 0;
+      foreach ($groups as $group) {
+        $status = _multistep_get_status($node->nid, $group->group_name);
+        // Count how many steps have been submitted.
+        if ($status == 'submitted') {
+          $submitted++;
+        }
       }
+      $content['multistep_block_progress'] = array(
+        '#theme' => 'multistep_progress_bar',
+        '#progress' => round($submitted / $steps * 100),
+      );
     }
-    //$content .= theme('multistep_progress_bar', round($submitted / $steps * 100));
   }
   $node_type = node_type_load($type);
   drupal_add_css(drupal_get_path('module', 'multistep') . '/multistep.css');
@@ -235,7 +234,6 @@ function multistep_block_view($type = '') {
     'subject' => $node_type->name . ' menu',
     'content' => $content,
   );
-  return;
 }
 
 /**
@@ -269,7 +267,6 @@ function multistep_field_group_format_summary($group) {
 
 /**
  * Implements hook_field_group_pre_render().
- * @todo Set the proper #access based on the current step.
  */
 function multistep_field_group_pre_render(&$element, $group, &$form) {
   $step = $form['#multistep']['current'];
@@ -325,7 +322,6 @@ function multistep_node_delete($node) {
  * Implements hook_field_attach_form().
  */
 function multistep_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode = NULL) {
-  //$entity = $form['#node'];
   if (!is_multistep($entity)) {
     return;
   }
@@ -490,20 +486,36 @@ function _multistep_publishing($complete) {
 
 /**
  * Get all steps as an array.
- * @todo Add some basic caching
  */
 function multistep_get_steps($type) {
+  $multistep = &drupal_static(__FUNCTION__);
   if (is_object($type)) {
     $type = $type->type;
   }
-  $groups = field_group_info_groups('node', $type, 'form');
-  $steps = array();
-  foreach ($groups as $group) {
-    if ($group->format_type == 'multistep') {
-      $steps[$group->group_name] = $group;
+  if (!isset($multistep)) {
+    $types = node_type_get_types();
+    foreach ($types as $type_name => $node_type) {
+      $groups = field_group_info_groups('node', $type_name, 'form');
+      $steps = array();
+      foreach ($groups as $group) {
+        if ($group->format_type == 'multistep') {
+          $steps[$group->group_name] = $group;
+        }
+      }
+      $multistep[$type_name] = $steps;
     }
   }
-  return $steps;
+  elseif (!isset($multistep[$type])) {
+    $groups = field_group_info_groups('node', $type, 'form');
+    $steps = array();
+    foreach ($groups as $group) {
+      if ($group->format_type == 'multistep') {
+        $steps[$group->group_name] = $group;
+      }
+    }
+    $multistep[$type] = $steps;
+  }
+  return $multistep[$type];
 }
 
 /**
