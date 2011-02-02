@@ -12,13 +12,13 @@ function theme_multistep_navigation($data = array()) {
   foreach ($data as $key => $group) {
     extract($group);
     if (isset($url) || $next_unsubmitted_step) {
-      $content[$key] = l($label, $url, array('attributes' => array('id' => $id, 'class' => implode(' ', $class)), 'fragment' => $anchor));
+      $content[$key] = l($label, $url, array('attributes' => array('id' => $id, 'class' => $class), 'query' => array('step' => $step), 'fragment' => $anchor));
     }
     else {
       $content[$key] = '<span id="'. $id .'" class="' . implode(' ', $class) . '">' . $label . '</span>';
     }
   }
-  return theme('item_list', $content);
+  return theme('item_list', array('items' => $content, 'type' => variable_get('multistep_show_step_numbers') ? 'ol' : 'ul'));
 }
 
 /**

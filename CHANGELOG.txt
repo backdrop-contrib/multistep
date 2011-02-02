@@ -2,6 +2,8 @@ $Id$
 
 Multistep 7.x-1.x-dev
 ---------------------
+Changed database schema to support machine name for steps.
+Fixed the block system.
 Fixed way of getting multistep-enabled content types in the reset admin page.
 #1038708: Initialize empty $blocks array in hook_block_info().
 Added dependency on field_group.

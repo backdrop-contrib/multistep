@@ -64,7 +64,7 @@ function multistep_admin_settings_workflow_form($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Show step numbers'),
     '#description' => t('Show step numbers in navigation block.'),
-    '#default_value' => variable_get('multistep_show_step_numbers', TRUE),
+    '#default_value' => variable_get('multistep_show_step_numbers', FALSE),
     '#weight' => -6,
   );
   return system_settings_form($form);

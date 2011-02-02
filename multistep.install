@@ -36,10 +36,10 @@ function multistep_schema() {
         'description' => 'The primary identifier for a node.'
       ),
       'step' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
+        'type' => 'varchar',
+        'length' => 64,
         'not null' => TRUE,
-        'default' => 0,
+        'default' => '',
         'description' => 'A particular step of the nid.'
       ),
       'status' => array(
@@ -156,4 +156,24 @@ function multistep_update_7100(&$sandbox) {
     variable_del('multistep_expose_' . $node_type->type);
     variable_del('multistep_buttons_' . $node_type->type);
   }
+}
+
+function multistep_update_7101(&$sandbox) {
+  variable_del('multistep_show_step_numbers');
+  $spec = array(
+    'type' => 'varchar',
+    'length' => 64,
+    'not null' => TRUE,
+    'default' => '',
+    'description' => 'A particular step of the nid.',
+  );
+  $keys_new = array(
+    'primary key' => array('nid', 'step'),
+    'indexes' => array(
+      'multistep_nid_step' => array('nid', 'step'),
+    ),
+  );
+  db_drop_primary_key('multistep');
+  db_drop_index('multistep', 'multistep_nid_step');
+  db_change_field('multistep', 'step', 'step', $spec, $keys_new);
 }
