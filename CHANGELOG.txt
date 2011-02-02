@@ -2,6 +2,7 @@ $Id$
 
 Multistep 7.x-1.x-dev
 ---------------------
+Fixed status update functions.
 Added support for AJAX-enabled form elements.
 Added static caching for multistep_get_steps().
 Return block progress bar as a renderable array.

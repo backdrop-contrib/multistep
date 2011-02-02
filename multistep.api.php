@@ -28,7 +28,7 @@
  *   The status of the step after submission. The possible options are
  *   'submitted' or 'unsubmitted'.
  */
-function hook_multistep_update_status(&$form_state, $status, $step) {
+function hook_multistep_update_status($form_state, $status, $step) {
   // Get the node type
   $type = $form_state['node']['type'];
   // Check whether we are on the last step of the form

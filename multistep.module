@@ -297,16 +297,6 @@ function multistep_node_insert($node) {
 }
 
 /**
- * Implements hook_node_update().
- * Update the step list for this node in the database.
- */
-function multistep_node_update($node) {
-  if (is_multistep($node)) {
-    // @todo Do something here...
-  }
-}
-
-/**
  * Implements hook_node_delete().
  * Remove the step list for this node in the database.
  */
@@ -416,6 +406,10 @@ function multistep_node_validate($node, $form, &$form_state) {
  */
 function multistep_submit($form, &$form_state) {
   $node = $form['#node'];
+  // Update the step list for this node in the database
+  $current_step = $form['#multistep']['current'];
+  $status = module_invoke_all('multistep_update_status', $form_state, 'submitted', $current_step);
+  _multistep_update_status($node, $status, $current_step);
   $query = array(
     'query' => array(
       'step' => array(),
@@ -667,55 +661,49 @@ function multistep_get_field_step_recursive($field, $group, $type) {
 }
 
 /**
- * Invokes a hook to allow third party modules to update the status of a step.
+ * Implementation of hook_multistep_update_status().
  */
-function multistep_update_status(&$form_state, $status = 'unsubmitted', $step) {
-  // Allow other modules to override the status
-  $override = module_invoke_all('multistep_update_status', $form_state, $status, $step);
-  foreach ($override as $value) {
-    // Prevent bogus status by allowing only 'submitted' or 'unsubmitted'
-    if ($value != 'submitted') {
-      // 'unsubmitted' has priority
-      $status = 'unsubmitted';
-    }
-  }
-  _multistep_update_status($form_state['nid'], $status, $step);
+function multistep_multistep_update_status($form_state, $status, $step) {
+  return 'submitted';
 }
 
 /**
  * Updates the multistep table with the current status of each step.
  */
-function _multistep_update_status($nid, $status = 'unsubmitted', $step = NULL) {
-  if ($nid != NULL) {
-    if (is_null($step) || $step == 0) {
-      $start = 1;
-      $node = node_load($nid);
-      $end = variable_get('multistep_steps_' . $node->type, 0);
+function _multistep_update_status($nid, $status, $step = 'all') {
+  if (is_object($nid)) {
+    $nid = $nid->nid;
+  }
+  elseif (empty($nid)) {
+    return;
+  }
+  // When all steps are passed (or no step specified), initialize
+  if ($step == 'all') {
+    $node = node_load($nid);
+    $groups = multistep_get_steps($node->type);
+    foreach ($groups as $group) {
+      _multistep_update_status($node, $status, $group->group_name);
     }
-    else {
-      $start = $end = $step;
-    }
-    // Generate the step list for this node in the database, or set the current step.
-    for ($step = $start; $step <= $end; $step++) {
-      if (is_null(_multistep_get_status($nid, $step))) {
-        db_insert('multistep')
-          ->fields(array(
-            'nid' => $nid,
-            'step' => $step,
-            'status' => $status,
-          ))
-          ->execute();
-      }
-      else {
-        db_update('multistep')
-          ->fields(array(
-            'status' => $status,
-          ))
-          ->condition('nid', $nid)
-          ->condition('step', $step)
-          ->execute();
-      }
-    }
+    return;
+  }
+  // Generate the step list for this node in the database, or set the current step.
+  if (_multistep_get_status($nid, $step)) {
+    db_update('multistep')
+      ->fields(array(
+        'status' => $status,
+      ))
+      ->condition('nid', $nid)
+      ->condition('step', $step)
+      ->execute();
+  }
+  else {
+    db_insert('multistep')
+      ->fields(array(
+        'nid' => $nid,
+        'step' => $step,
+        'status' => $status,
+      ))
+      ->execute();
   }
 }
 
@@ -741,18 +729,21 @@ function _multistep_reset_data($type) {
 /**
  * Get status of a step in a specific node.
  */
-function _multistep_get_status($nid, $step) {
-  $status = NULL;
-  if ($nid != NULL && $step != NULL && $step > 0) {
-    $row = db_query('SELECT status FROM {multistep} WHERE nid = :nid AND step = :step', array(
+function _multistep_get_status($nid, $step = 'all') {
+  if ($step == 'all') {
+    $result = db_query('SELECT step, status FROM {multistep} WHERE nid = :nid', array(
       ':nid' => $nid,
-      ':step' => $step,
-    ))->fetchField();
-    if ($row) {
-      $status = $row->status;
+    ))->fetchAll();
+    $status = array();
+    foreach ($result as $row) {
+      $status[$row->step] = $row->status;
     }
+    return $status;
   }
-  return $status;
+  return db_query('SELECT status FROM {multistep} WHERE nid = :nid AND step = :step', array(
+    ':nid' => $nid,
+    ':step' => $step,
+  ))->fetchField();
 }
 
 /**
