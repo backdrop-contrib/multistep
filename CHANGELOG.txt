@@ -2,6 +2,7 @@ $Id$
 
 Multistep 7.x-1.x-dev
 ---------------------
+Change $form_state['clicked_button'] to $form_state['triggering_element'].
 Upgraded integration with Rules module.
 Fixed status update functions.
 Added support for AJAX-enabled form elements.

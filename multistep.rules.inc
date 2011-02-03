@@ -2,7 +2,7 @@
 // $Id$
 
 /**
- * Implementation of hook_rules_condition_info().
+ * Implements of hook_rules_condition_info().
  */
 function multistep_rules_condition_info() {
   return array(

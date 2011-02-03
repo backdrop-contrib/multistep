@@ -390,7 +390,7 @@ function multistep_node_validate($node, $form, &$form_state) {
   }
   /*if ($form['revision_information']['revision']['#value']) {
     $complete = multistep_is_complete($node);
-    $last = $form_state['clicked_button']['#parents'][0] == 'done' ? TRUE : FALSE;
+    $last = $form_state['triggering_element']['#parents'][0] == 'done' ? TRUE : FALSE;
     $form_state['values']['revision'] = _multistep_revisioning($complete, $last);
   }*/
   // Verify if the status checkbox is checked, and the Publishing option is set to Publish
@@ -410,10 +410,11 @@ function multistep_submit($form, &$form_state) {
   $status = module_invoke_all('multistep_update_status', $form_state, 'submitted', $current_step);
   _multistep_update_status($node, $status, $current_step);
   $step = FALSE;
-  switch ($form_state['clicked_button']['#parents'][0]) {
+  dpm($form_state);
+  switch ($form_state['triggering_element']['#parents'][0]) {
     case 'previous':
     case 'next':
-      $step = $form['#multistep'][$form_state['clicked_button']['#parents'][0]];
+      $step = $form['#multistep'][$form_state['triggering_element']['#parents'][0]];
       break;
     case 'save':
       $step = $form['#multistep']['current'];
@@ -657,7 +658,7 @@ function multistep_get_field_step_recursive($field, $group, $type) {
 }
 
 /**
- * Implementation of hook_multistep_update_status().
+ * Implements of hook_multistep_update_status().
  */
 function multistep_multistep_update_status($form_state, $status, $step) {
   return 'submitted';
