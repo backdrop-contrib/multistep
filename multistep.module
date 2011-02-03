@@ -410,7 +410,6 @@ function multistep_submit($form, &$form_state) {
   $status = module_invoke_all('multistep_update_status', $form_state, 'submitted', $current_step);
   _multistep_update_status($node, $status, $current_step);
   $step = FALSE;
-  dpm($form_state);
   switch ($form_state['triggering_element']['#parents'][0]) {
     case 'previous':
     case 'next':
