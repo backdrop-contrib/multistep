@@ -1,4 +1,3 @@
-; $Id$
 name = Multistep
 description = Adds multistep functionality to content types.
 package = Fields

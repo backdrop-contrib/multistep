@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Filter handler that filters results based on the completion status of a multistep node.

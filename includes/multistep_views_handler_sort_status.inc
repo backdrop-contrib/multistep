@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Field handler that returns the completion status of a multistep node.

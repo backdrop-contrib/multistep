@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Display a navigation block.

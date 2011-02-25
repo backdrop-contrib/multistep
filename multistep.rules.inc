@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Implements of hook_rules_condition_info().
