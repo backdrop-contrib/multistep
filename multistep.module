@@ -491,6 +491,7 @@ function multistep_get_steps($type) {
           $steps[$group->group_name] = $group;
         }
       }
+      uasort($steps, '_multistep_cmp_group_weight');
       $multistep[$type_name] = $steps;
     }
   }
@@ -502,11 +503,22 @@ function multistep_get_steps($type) {
         $steps[$group->group_name] = $group;
       }
     }
+    uasort($steps, '_multistep_cmp_group_weight');
     $multistep[$type] = $steps;
   }
   return $multistep[$type];
 }
 
+/**
+ * group weight compare herper function
+ * 
+ * @param $a
+ * @param $b
+ * @return int weight difference
+ */
+function _multistep_cmp_group_weight($a, $b) {
+  return $a->weight - $b->weight;
+}
 /**
  * Determine if a given node is a multistep form.
  */
