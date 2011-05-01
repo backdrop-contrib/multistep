@@ -403,11 +403,11 @@ function multistep_node_validate($node, $form, &$form_state) {
  * Submit the form and redirect to the next appropriate step.
  */
 function multistep_submit($form, &$form_state) {
-  $node = $form['#node'];
+  $nid = $form_state['nid'];
   // Update the step list for this node in the database
   $current_step = $form['#multistep']['current'];
   $status = module_invoke_all('multistep_update_status', $form_state, 'submitted', $current_step);
-  _multistep_update_status($node, $status, $current_step);
+  _multistep_update_status($nid, $status, $current_step);
   $step = FALSE;
   switch ($form_state['triggering_element']['#parents'][0]) {
     case 'previous':
@@ -422,10 +422,10 @@ function multistep_submit($form, &$form_state) {
     $query = array(
       'query' => array('step' => $step),
     );
-    $form_state['redirect'] = array('node/' . $node->nid . '/edit', $query);
+    $form_state['redirect'] = array('node/' . $nid . '/edit', $query);
   }
   else {
-    $form_state['redirect'] = array('node/' . $node->nid);
+    $form_state['redirect'] = array('node/' . $nid);
   }
 }
 
