@@ -481,21 +481,7 @@ function multistep_get_steps($type) {
   if (is_object($type)) {
     $type = $type->type;
   }
-  if (!isset($multistep)) {
-    $types = node_type_get_types();
-    foreach ($types as $type_name => $node_type) {
-      $groups = field_group_info_groups('node', $type_name, 'form');
-      $steps = array();
-      foreach ($groups as $group) {
-        if ($group->format_type == 'multistep') {
-          $steps[$group->group_name] = $group;
-        }
-      }
-      uasort($steps, '_multistep_cmp_group_weight');
-      $multistep[$type_name] = $steps;
-    }
-  }
-  elseif (!isset($multistep[$type])) {
+  if (!isset($multistep[$type])) {
     $groups = field_group_info_groups('node', $type, 'form');
     $steps = array();
     foreach ($groups as $group) {
