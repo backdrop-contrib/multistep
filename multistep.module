@@ -302,7 +302,7 @@ function multistep_node_insert($node) {
 function multistep_node_delete($node) {
   if (is_multistep($node)) {
     db_delete('multistep')
-      ->condition('id', $node->nid)
+      ->condition('nid', $node->nid)
       ->execute();
   }
 }
