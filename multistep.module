@@ -274,10 +274,12 @@ function multistep_field_group_pre_render(&$element, $group, &$form) {
   if (!$access && $step == 'all') {
     $access = user_access('toggle multistep');
   }
+  $prefix = '<div id="multistep-' . $group->group_name . '">';
+  $prefix .= "<h1>$group->label</h1>";
   if ($group->format_type == 'multistep') {
     $element += array(
       '#type' => 'markup',
-      '#prefix' => '<div id="multistep-' . $group->group_name . '">',
+      '#prefix' => $prefix,
       '#suffix' => '</div>',
       '#weight' => $group->weight,
       '#access' => $access,
