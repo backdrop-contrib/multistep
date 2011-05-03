@@ -268,6 +268,7 @@ function multistep_field_group_format_summary($group) {
  * Implements hook_field_group_pre_render().
  */
 function multistep_field_group_pre_render(&$element, $group, &$form) {
+  if(!array_key_exists('#multistep', $form)) return;
   $step = $form['#multistep']['current'];
   $access = $group->group_name == $step;
   // Verify if user wants to see all steps at once
