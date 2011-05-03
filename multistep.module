@@ -313,7 +313,7 @@ function multistep_node_delete($node) {
  * Implements hook_field_attach_form().
  */
 function multistep_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode = NULL) {
-  if (!is_multistep($entity)) {
+  if (!($entity_type == 'node') || !is_multistep($entity)) {
     return;
   }
   /* Disable immediate redirection through "destination" parameter, but preserve the destination value.
