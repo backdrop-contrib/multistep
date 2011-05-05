@@ -586,15 +586,14 @@ function multistep_get_first($type) {
  */
 function multistep_get_previous($type, $step) {
   $steps = multistep_get_steps($type);
-  reset($steps);
-  while (list($key, $value) = each($steps)) {
-    if ($key == $step) {
-      prev($steps);
-      prev($steps);
-      return key($steps);
-    }
-  }
-  return FALSE;
+  $step_names = array_keys($steps);
+  $step_index = array_search($step, $step_names);
+  if($step_index === FALSE) return FALSE;
+  $return_step_index = $step_index-1;
+  if($step_index < 0) return FALSE;
+  $return_step = $steps[$step_names[$return_step_index]];
+  $return = $return_step->group_name;
+  return $return;
 }
 
 /**
@@ -602,12 +601,14 @@ function multistep_get_previous($type, $step) {
  */
 function multistep_get_next($type, $step) {
   $steps = multistep_get_steps($type);
-  while (list($key, $value) = each($steps)) {
-    if ($key == $step) {
-      return key($steps);
-    }
-  }
-  return FALSE;
+  $step_names = array_keys($steps);
+  $step_index = array_search($step, $step_names);
+  if($step_index === FALSE) return FALSE;
+  $return_step_index = $step_index+1;
+  if($step_index > count($step_names)) return FALSE;
+  $return_step = $steps[$step_names[$return_step_index]];
+  $return = $return_step->group_name;
+  return $return;
 }
 
 /**
