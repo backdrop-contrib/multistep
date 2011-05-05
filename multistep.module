@@ -156,17 +156,20 @@ function multistep_block_save($delta = '', $edit = array()) {
  * Implements hook_block_view().
  */
 function multistep_block_view($type = '') {
-  // Verify that this is a node edit form
+  if (!is_multistep($type)) return;
+
   $router_item = menu_get_item();
-  if ($router_item['page_callback'] != 'node_page_edit') {
-    return;
-  }
-  // Load the node object
-  $node = menu_get_object();
-  // Get out if there are no multistep groups here
-  if ($node->type != $type || !is_multistep($type)) {
-    return;
-  }
+  $page_callback = $router_item['page_callback']; 
+  
+  if ($page_callback == 'node_page_edit') {
+    $node = menu_get_object();
+    if ($node->type != $type) return;
+    $nid = $node->nid;
+  } elseif($page_callback == 'node_add') {
+    if ($router_item['page_arguments'][0] != $type) return;
+    $nid = 0;
+  } else return;
+  
   $content = array();
   // Display block body.
   if (variable_get('multistep_body_' . $type, '') != '') {
@@ -188,14 +191,14 @@ function multistep_block_view($type = '') {
     );
     foreach ($groups as $group) {
       // Highlight unsubmitted steps.
-      $status = _multistep_get_status($node->nid, $group->group_name);
+      $status = _multistep_get_status($nid, $group->group_name);
       $content['multistep_block_navigation']['#children'][$group->weight . $group->group_name] = array(
         'id' => 'multistep-' . $type . '-' . $group->group_name,
         'class' => array(
           is_null($status) || $status == '' ? '' : 'multistep-' . $status,
           $current_step == $group->group_name ? 'active': '',
         ),
-        'url' => isset($node->nid) && ($workflow_mode == 'free' || ($workflow_mode == 'direct' && ($status == 'submitted' || multistep_get_next($type, $last_submitted_step) == $group->group_name))) ? $_GET['q'] : NULL,
+        'url' => $nid && ($workflow_mode == 'free' || ($workflow_mode == 'direct' && ($status == 'submitted' || multistep_get_next($type, $last_submitted_step) == $group->group_name))) ? $_GET['q'] : NULL,
         'step' => $group->group_name,
         'label' => $group->label,
         'next_unsubmitted_step' => FALSE,
@@ -215,7 +218,7 @@ function multistep_block_view($type = '') {
     if ($steps = count($groups)) {
       $submitted = 0;
       foreach ($groups as $group) {
-        $status = _multistep_get_status($node->nid, $group->group_name);
+        $status = _multistep_get_status($nid, $group->group_name);
         // Count how many steps have been submitted.
         if ($status == 'submitted') {
           $submitted++;
@@ -725,8 +728,10 @@ function _multistep_reset_data($type) {
 
 /**
  * Get status of a step in a specific node.
+ * if we're on node creation form and $nid == 0 return false
  */
 function _multistep_get_status($nid, $step = 'all') {
+  if(!$nid) return FALSE;
   if ($step == 'all') {
     $result = db_query('SELECT step, status FROM {multistep} WHERE nid = :nid', array(
       ':nid' => $nid,
