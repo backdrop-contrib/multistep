@@ -631,28 +631,32 @@ function multistep_get_last($type) {
 function multistep_get_field_step($field_name, $type) {
   $groups = multistep_get_steps($type);
   // Recursively find field step
+  $groupinfo = field_group_info_groups('node', $type, 'form');
   foreach ($groups as $group) {
-    if ($step = multistep_get_field_step_recursive($field_name, $group->group_name, $type)) {
+    if ($step = multistep_get_field_step_recursive($field_name, $group->group_name, $groupinfo)) {
       return $step;
     }
   }
   // Field does not belong to any step
+  // FIXME: we should in fact throw an error or so
   return multistep_get_first($type);
 }
 
 /**
  * Recursively finds whether a field belongs to a step.
  */
-function multistep_get_field_step_recursive($field, $group, $type) {
-  $group = field_group_menu_load($group, 'node', $type, NULL, NULL);
+function multistep_get_field_step_recursive($field, $group_name, $groupinfo) {
+  if(!isset($groupinfo[$group_name])) return FALSE;
+  $group = $groupinfo[$group_name];
   if (is_array($group->children)) {
     if (in_array($field, $group->children)) {
       return $group->group_name;
     }
     else {
       foreach ($group->children as $child) {
-        if (strpos($child, 'group_')) {
-          return multistep_get_field_step_recursive($field, $child, $type);
+        if (strpos($child, 'group_') === 0) {
+          if(multistep_get_field_step_recursive($field, $child, $groupinfo))
+            return $group->group_name;
         }
       }
     }
