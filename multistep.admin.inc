@@ -9,8 +9,10 @@
  * Form used for administering multistep workflow settings.
  */
 function multistep_admin_settings_workflow_form($form, &$form_state) {
+  $config = config('multistep.settings');
   $form = array();
-  $form['multistep_status_revisions'] = array(
+  $form['#config'] = 'multistep.settings';
+  $form['status_revisions'] = array(
     '#type' => 'radios',
     '#title' => t('Revisions'),
     '#description' => t('Sets how multistep will interact with node revisioning, <em>if revisioning is enabled for the content type</em>.
@@ -23,7 +25,7 @@ function multistep_admin_settings_workflow_form($form, &$form_state) {
       <li><strong>Last step, after node completion</strong> will create a new revision only when subitting the last step of the form, and only if all the steps have been successfully submitted at least once
       (i.e. after the node is considered <em>complete</em>).</li></ul>'
     ),
-    '#default_value' => variable_get('multistep_status_revisions', 'default'),
+    '#default_value' => $config->get('status_revisions'),
     '#options' => array(
       'default' => t('Any step (Default)'),
       'complete' => t('Any step, after node completion'),
@@ -32,7 +34,7 @@ function multistep_admin_settings_workflow_form($form, &$form_state) {
     ),
     '#weight' => -10,
   );
-  $form['multistep_status_publishing'] = array(
+  $form['status_publishing'] = array(
     '#type' => 'radios',
     '#title' => t('Publishing'),
     '#description' => t('Sets how multistep will interact with the node published status, <em>if publishing is enabled for the content type</em>.
@@ -41,14 +43,14 @@ function multistep_admin_settings_workflow_form($form, &$form_state) {
       <li><strong>At node completion</strong> will hold off publishing the node until all steps have been successfully submitted
       (i.e. when the node is considered <em>complete</em>).</li></ul>'
     ),
-    '#default_value' => variable_get('multistep_status_publishing', 'default'),
+    '#default_value' => $config->get('status_publishing'),
     '#options' => array(
       'default' => t('At node creation (Default)'),
       'complete' => t('At node completion'),
     ),
     '#weight' => -9,
   );
-  $form['multistep_workflow_mode'] = array(
+  $form['workflow_mode'] = array(
     '#type' => 'radios',
     '#title' => t('Workflow mode'),
     '#description' => t('Disables navigation block links for steps that have not been submitted') . '<br /><strong>' . t('Note: This does not remove access from those steps, it merely displays the links as static text instead.') . '</strong>',
@@ -56,52 +58,54 @@ function multistep_admin_settings_workflow_form($form, &$form_state) {
       'free' => t('Steps can be submitted in any order (Default)'),
       'direct' => t('Steps can be submitted only in one direction (Wizard)'),
     ),
-    '#default_value' => variable_get('multistep_workflow_mode', 'free'),
+    '#default_value' => $config->get('workflow_mode'),
     '#weight' => -8,
   );
-  $form['multistep_show_step_numbers'] = array(
+  $form['show_step_numbers'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show step numbers'),
     '#description' => t('Show step numbers in navigation block.'),
-    '#default_value' => variable_get('multistep_show_step_numbers', FALSE),
+    '#default_value' => $config->get('show_step_numbers'),
     '#weight' => -6,
   );
   return system_settings_form($form);
-}  
-  
+}
+
 /**
  * Form used for changing multistep form labels.
  */
 function multistep_admin_settings_design_form($form, &$form_state) {
-  drupal_set_message(t('Saving these strings will disable their translation via Drupal\'s language system. Use the reset button to return them to the original state.'), 'warning');
+  $config = config('multistep.settings');
+  backdrop_set_message(t('Saving these strings will disable their translation via Backdrop\'s language system. Use the reset button to return them to the original state.'), 'warning');
   $form = array();
-  $form['multistep_button_prev'] = array(
+  $form['#config'] = 'multistep.settings';
+  $form['button_prev'] = array(
     '#type' => 'textfield',
     '#title' => t('Previous button'),
     '#description' => t('This button will bring you back one step. To omit this button, remove any text and leave this field blank.'),
-    '#default_value' => variable_get('multistep_button_prev', t('< Previous')),
+    '#default_value' => $config->get('button_prev'),
     '#weight' => -10,
   );
-  $form['multistep_button_next'] = array(
+  $form['button_next'] = array(
     '#type' => 'textfield',
     '#title' => t('Next button'),
     '#description' => t('This button will move you forward one step.'),
-    '#default_value' => variable_get('multistep_button_next', t('Next >')),
+    '#default_value' => $config->get('button_next'),
     '#required' => TRUE,
     '#weight' => -9,
   );
-  $form['multistep_button_save'] = array(
+  $form['button_save'] = array(
     '#type' => 'textfield',
     '#title' => t('Save button'),
     '#description' => t('This button will save the form while remaining in the current step. To omit this button, remove any text and leave this field blank.'),
-    '#default_value' => variable_get('multistep_button_save', t('Save')),
+    '#default_value' => $config->get('button_save'),
     '#weight' => -8,
   );
-  $form['multistep_button_done'] = array(
+  $form['button_done'] = array(
     '#type' => 'textfield',
     '#title' => t('Done button'),
     '#description' => t('This button will save the form and redirect you to the node view.'),
-    '#default_value' => variable_get('multistep_button_done', t('Done')),
+    '#default_value' => $config->get('button_done'),
     '#required' => TRUE,
     '#weight' => -7,
   );
@@ -142,5 +146,5 @@ function multistep_admin_settings_reset_form($form, &$form_state) {
  */
 function multistep_admin_settings_reset_form_submit($form, &$form_state) {
   _multistep_reset_data($form_state['values']['multistep_type']);
-  drupal_set_message(t('Data was reset successfully.'));
+  backdrop_set_message(t('Data was reset successfully.'));
 }

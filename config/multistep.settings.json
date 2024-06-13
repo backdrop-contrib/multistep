@@ -1,0 +1,10 @@
+{
+    "_config_name": "multistep.settings",
+    "button_prev": "< Previous",
+    "button_next": "Next >",
+    "button_save": true,
+    "button_done": "Done",
+    "status_revisions": "default",
+    "status_publishing": "default",
+    "workflow_mode": "free"
+}

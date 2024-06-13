@@ -15,7 +15,7 @@ class multistep_views_handler_field_status extends views_handler_field {
     if (!empty($values->multistep_status)) {
       return t('Incomplete');
     }
-    if (variable_get('multistep_expose_' . $values->node_type, 'disabled') == 'enabled') {
+    if (is_multistep($values->node_type)) {
       return t('Complete');
     }
     return '';

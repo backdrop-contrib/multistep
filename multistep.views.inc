@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Implementation of hook_views_data().
+ * Implements hook_views_data().
  */
 function multistep_views_data() {
   $data['multistep']['table']['group'] = t('Multistep');
@@ -32,13 +32,13 @@ function multistep_views_data() {
 }
 
 /**
- * Implementation of hook_views_handlers() to register all of the basic handlers
+ * Implements hook_views_handlers() to register all of the basic handlers().
  * views uses.
  */
 function multistep_views_handlers() {
   return array(
     'info' => array(
-      'path' => drupal_get_path('module', 'multistep') . '/includes',
+      'path' => backdrop_get_path('module', 'multistep') . '/includes',
     ),
     'handlers' => array(
       // field handlers

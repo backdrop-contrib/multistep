@@ -1,12 +1,7 @@
 <?php
 
 /**
- * @file
- * 
- */
-
-/**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
 function multistep_install() {
   // Set multistep to a higher weight so that it allows extra fields to load first.
@@ -16,12 +11,10 @@ function multistep_install() {
     ))
     ->condition('name', 'multistep')
     ->execute();
-  // Clear cache to take into account the change in forms immediately.
-  //cache_clear_all('content_type_info', 'cache_content');
 }
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function multistep_schema() {
   $schema['multistep'] = array(
@@ -32,21 +25,21 @@ function multistep_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
-        'description' => 'The primary identifier for a node.'
+        'description' => 'The primary identifier for a node.',
       ),
       'step' => array(
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
         'default' => '',
-        'description' => 'A particular step of the nid.'
+        'description' => 'A particular step of the nid.',
       ),
       'status' => array(
         'type' => 'varchar',
         'length' => 12,
         'not null' => TRUE,
         'default' => '',
-        'description' => 'The status of the step.'
+        'description' => 'The status of the step.',
       ),
     ),
     'primary key' => array('nid', 'step'),
@@ -59,120 +52,43 @@ function multistep_schema() {
 }
 
 /**
- * Implementation of hook_enable().
- *
-function multistep_enable() {
-  // Clear cache to take into account the change in forms immediately.
-  cache_clear_all('content_type_info', 'cache_content');
-}
-
-/**
- * Implementation of hook_disable().
- *
-function multistep_disable() {
-  // Clear cache to take into account the change in forms immediately.
-  cache_clear_all('content_type_info', 'cache_content');
-}
-
-/**
- * Implementation of hook_uninstall().
+ * Implements hook_update_last_removed().
  */
-function multistep_uninstall() {
-  // Remove variables created by the module.
-  $node_types = node_type_get_types();
-  foreach ($node_types as $node_type) {
-    variable_del('multistep_expose_' . $node_type->type);
-    variable_del('multistep_menu_' . $node_type->type);
-    variable_del('multistep_progress_' . $node_type->type);
-    variable_del('multistep_steps_' . $node_type->type);
-    variable_del('multistep_buttons_' . $node_type->type);
-    variable_del('multistep_default_' . $node_type->type);
-    /*
-    * @todo Verify how Field API handles extra fields
-    foreach ($node_type['extra'] as $extra_field) {
-      variable_del('multistep_extra_' . $extra_field . '_' . $content_type['type']);
-    }*/
-  }
-  variable_del('multistep_status_revisions');
-  variable_del('multistep_status_publishing');
-  variable_del('multistep_button_prev');
-  variable_del('multistep_button_next');
-  variable_del('multistep_button_save');
-  variable_del('multistep_button_done');
-  // Clear cache to take into account the change in forms immediately.
-  //cache_clear_all('content_type_info', 'cache_content');
-  //cache_clear_all('variables', 'cache');
+function multistep_update_last_removed() {
+  return 7101;
 }
 
 /**
- * Implementation of hook_update_N().
+ * Migrate multistep variables to config.
  */
-function multistep_update_6100(&$sandbox) {
-  $schema['multistep'] = array(
-    'fields' => array(
-      'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'description' => 'The primary identifier for a node.'),
-      'step' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'description' => 'A particular step of the nid.'),
-      'status' => array('type' => 'varchar', 'length' => 12, 'not null' => TRUE, 'default' => '', 'description' => 'The status of the step.'),
-    ),
-    'description' => t('Keeps track of submitted steps in multistep forms.'),
-  );
-  db_create_table('multistep', $schema['multistep']);
-}
+function multistep_update_1000() {
+  $config = config('multistep.settings');
+  $config->set('status_revisions', update_variable_get('multistep_status_revisions', 'default'));
+  $config->set('status_publishing', update_variable_get('multistep_status_publishing', 'default'));
+  $config->set('workflow_mode', update_variable_get('multistep_workflow_mode', 'free'));
+  $config->set('show_step_numbers', update_variable_get('multistep_show_step_numbers', FALSE));
+  $config->set('button_prev', update_variable_get('multistep_button_prev', '< Previous'));
+  $config->set('button_next', update_variable_get('multistep_button_next', 'Next >'));
+  $config->set('button_save', update_variable_get('multistep_button_save', TRUE));
+  $config->set('button_done', update_variable_get('multistep_button_done', 'Done'));
+  $config->save();
 
-function multistep_update_6101(&$sandbox) {
-  // Remove variables for old settings created by the module.
-  $node_types = node_type_get_types();
-  foreach ($node_types as $node_type) {
-    variable_del('multistep_button_prev_' . $node_type->type);
-    variable_del('multistep_button_next_' . $node_type->type);
-    variable_del('multistep_button_save_' . $node_type->type);
-    variable_del('multistep_button_done_' . $node_type->type);
+  update_variable_del('multistep_status_revisions');
+  update_variable_del('multistep_status_publishing');
+  update_variable_del('multistep_workflow_mode');
+  update_variable_del('multistep_show_step_numbers');
+  update_variable_del('multistep_button_prev');
+  update_variable_del('multistep_button_next');
+  update_variable_del('multistep_button_save');
+  update_variable_del('multistep_button_done');
+  foreach (node_type_get_types() as $type) {
+    // This variable isn't actually in use!
+    update_variable_del('multistep_enabled_' . $type->type);
+    // Some variables are now stored as Block settings, so folks will need to
+    // manually configure the new blocks for these. We'll still delete the old
+    // variables so they're not lying around.
+    update_variable_del('multistep_body_' . $type->type);
+    update_variable_del('multistep_menu_' . $type->type);
+    update_variable_del('multistep_progress_' . $type->type);
   }
-}
-
-function multistep_update_6102(&$sandbox) {
-  // Set multistep to a higher weight so that it allows extra fields to load first.
-  db_update('system')
-    ->fields(array(
-      'weight' => 10,
-    ))
-    ->condition('name', 'multistep')
-    ->execute();
-}
-
-function multistep_update_6103(&$sandbox) {
-  // Add indexes for faster querying.
-  db_add_primary_key('multistep', array('nid', 'step'));
-  db_add_index('multistep', 'multistep_nid_step', array('nid', 'step'));
-  db_add_index('multistep', 'multistep_status', array(array('status', 1)));
-}
-
-function multistep_update_7100(&$sandbox) {
-  $node_types = node_type_get_types();
-  foreach ($node_types as $node_type) {
-    $enabled = variable_get('multistep_expose_' . $node_type->type, 0);
-    variable_set('multistep_enabled_' . $node_type->type, $enabled);
-    variable_del('multistep_expose_' . $node_type->type);
-    variable_del('multistep_buttons_' . $node_type->type);
-  }
-}
-
-function multistep_update_7101(&$sandbox) {
-  variable_del('multistep_show_step_numbers');
-  $spec = array(
-    'type' => 'varchar',
-    'length' => 64,
-    'not null' => TRUE,
-    'default' => '',
-    'description' => 'A particular step of the nid.',
-  );
-  $keys_new = array(
-    'primary key' => array('nid', 'step'),
-    'indexes' => array(
-      'multistep_nid_step' => array('nid', 'step'),
-    ),
-  );
-  db_drop_primary_key('multistep');
-  db_drop_index('multistep', 'multistep_nid_step');
-  db_change_field('multistep', 'step', 'step', $spec, $keys_new);
 }

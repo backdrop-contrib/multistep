@@ -35,7 +35,7 @@ function hook_multistep_update_status($form_state, $status, $step) {
     // Check whether the user entered their Last Name in the proper field
     if (empty($form_state['values']['field_last_name']['value'][0])) {
       // Warn the user
-      drupal_set_message(t('You have to enter your last name to complete this form'), 'warning');
+      backdrop_set_message(t('You have to enter your last name to complete this form'), 'warning');
       // Mark the step as 'unsubmitted'
       return 'unsubmitted';
     }

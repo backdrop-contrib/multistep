@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Implements of hook_rules_condition_info().
+ * Implements hook_rules_condition_info().
  */
 function multistep_rules_condition_info() {
   return array(

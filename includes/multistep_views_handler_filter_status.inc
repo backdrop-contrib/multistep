@@ -6,7 +6,10 @@
 class multistep_views_handler_filter_status extends views_handler_filter {
   function get_value_options() {
     if (!isset($this->value_options)) {
-      $this->value_options = array('complete' => t('Complete'), 'incomplete' => t('Incomplete'));
+      $this->value_options = array(
+        'complete' => t('Complete'),
+        'incomplete' => t('Incomplete'),
+      );
     }
   }
 
@@ -43,7 +46,7 @@ class multistep_views_handler_filter_status extends views_handler_filter {
         $form_state['input'][$identifier] = $this->value;
       }
       // If we're configuring an exposed filter, add an <Any> option.
-      $any_label = variable_get('views_exposed_filter_any_label', 'old_any') == 'old_any' ? t('<Any>') : t('- Any -');
+      $any_label = config_get('views.settings', 'exposed_filter_any_label') == 'old_any' ? t('<Any>') : t('- Any -');
       if ($form['value']['#type'] != 'select') {
         $any_label = check_plain($any_label);
       }

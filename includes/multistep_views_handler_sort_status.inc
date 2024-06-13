@@ -30,10 +30,10 @@ class multistep_views_handler_sort_status extends views_handler_sort {
       default:
         $type = t('Incomplete last');
         break;
-      case 'DESC';
-      case 'desc';
-      $type = t('Incomplete first');
-      break;
+      case 'DESC':
+      case 'desc':
+        $type = t('Incomplete first');
+        break;
     }
     return '<span class="views-ascending"><span>' . $type . '</span></span>';
   }
@@ -41,11 +41,14 @@ class multistep_views_handler_sort_status extends views_handler_sort {
   /**
    * Basic options for all sort criteria
    */
-  function options_form(&$form, &$form_state) {
+  function options_form($form, $form_state) {
     $form['order'] = array(
       '#type' => 'radios',
       '#title' => t('Sort order'),
-      '#options' => array('DESC' => t('Incomplete at the top'), 'ASC' => t('Incomplete at the bottom')),
+      '#options' => array(
+        'DESC' => t('Incomplete at the top'),
+        'ASC' => t('Incomplete at the bottom'),
+      ),
       '#default_value' => $this->options['order'],
     );
   }
