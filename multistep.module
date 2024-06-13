@@ -321,6 +321,24 @@ function multistep_node_delete($node) {
 }
 
 /**
+ *  Accumlates $group->children values in array $fields
+ *  for values matching the regular expression field_*
+ *  Recursively fetches field_* values for any children who are groups.
+ */
+function multistep_accumulate_fields_in_group($fieldgroups, $group, &$fields) {
+  if (is_object($group) && property_exists($group, 'children') && is_array($group->children)) {
+    foreach ($group->children as $child) {
+      if (is_string($child) && (strpos($child, 'field_') === 0)) {
+        $fields[] = array($child);
+      }
+      else if (array_key_exists($child, $fieldgroups)) {
+        multistep_accumulate_fields_in_group($fieldgroups, $fieldgroups[$child], $fields);
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_field_attach_form().
  */
 function multistep_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode = NULL) {
@@ -329,6 +347,8 @@ function multistep_field_attach_form($entity_type, $entity, &$form, &$form_state
     return;
   }
   $step = multistep_get_step($entity);
+  $limit_validation_errors = array();
+  multistep_accumulate_fields_in_group($form['#fieldgroups'], $form['#fieldgroups'][$step], $limit_validation_errors);
   $form['#multistep'] = array(
     'previous' => multistep_get_previous($entity, $step),
     'current' => $step,
@@ -341,6 +361,7 @@ function multistep_field_attach_form($entity_type, $entity, &$form, &$form_state
       '#value' => $config->get('button_prev'),
       '#submit' => array('node_form_submit', 'multistep_submit'),
       '#weight' => -999,
+      '#limit_validation_errors' => $limit_validation_errors,
     );
   }
   $form['actions']['save'] = array(
@@ -348,6 +369,7 @@ function multistep_field_attach_form($entity_type, $entity, &$form, &$form_state
     '#value' => $config->get('button_save'),
     '#submit' => array('node_form_submit', 'multistep_submit'),
     '#weight' => 0,
+    '#limit_validation_errors' => $limit_validation_errors,
   );
   if ($step != multistep_get_last($entity)) {
     $form['actions']['next'] = array(
@@ -355,6 +377,7 @@ function multistep_field_attach_form($entity_type, $entity, &$form, &$form_state
       '#value' => $config->get('button_next'),
       '#submit' => array('node_form_submit', 'multistep_submit'),
       '#weight' => 999,
+      '#limit_validation_errors' => $limit_validation_errors,
     );
   }
   else {
