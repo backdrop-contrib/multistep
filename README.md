@@ -76,17 +76,19 @@ For hooks provided by Multistep, read multistep.api.php
 Issues
 ------------
 
-Bugs and feature requests should be reported in [the Issue Queue](https://github.com/backdrop-contrib/views_block_area/issues).
+Bugs and feature requests should be reported in [the Issue Queue](https://github.com/backdrop-contrib/multistep/issues).
 
 Current Maintainers
 -------------------
 
-- [Giant Rabbit](https://github.com/giant-rabbit).
+- [Eli Lisseck](https://github.com/elisseck).
+- [Anthony Nemirovsky](https://github.com/anemirovsky).
 
 Credits
 -------
 
-- Ported to Backdrop CMS by [Giant Rabbit](https://github.com/giant-rabbit).
+- Ported to Backdrop CMS by [Anthony Nemirovsky](https://github.com/anemirovsky).
+- Backdrop development supported by [Giant Rabbit](https://giantrabbit.com).
 - Originally written for Drupal 7 by [Victor Kareh (vkareh)](http://www.vkareh.net).
 
 License
